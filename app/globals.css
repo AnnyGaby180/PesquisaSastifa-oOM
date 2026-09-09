@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  --dark: #123a63;
+  --dark-2: #0d2c4d;
+  --papel: #eef4f9;
+  --papel-card: #ffffff;
+  --linha: #8fc9e8;
+  --laranja: #1d6fb8;
+  --laranja-escuro: #14518c;
+  --concreto: #6b7278;
+  --concreto-claro: #aeb4b8;
+  --sucesso: #2f8f5b;
+  --alerta: #d9a441;
+  --erro: #c0392b;
+  --blueprint: #123a63;
+  --blueprint-2: #0d2c4d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--papel);
+  color: var(--dark);
+}
+
+body {
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--laranja);
+  outline-offset: 2px;
+}

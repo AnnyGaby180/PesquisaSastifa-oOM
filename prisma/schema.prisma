@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Uma pessoa da equipe que pode entrar no painel e gerar pesquisas.
+// Cadastrado pelo próprio painel (tela "Usuários"), sem auto-cadastro público.
+model Usuario {
+  id        String     @id @default(cuid())
+  nome      String
+  email     String     @unique
+  senhaHash String
+  ativo     Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  pesquisas Pesquisa[]
+}
+
+// Uma das obras/frentes de trabalho da empresa
+model Obra {
+  id        String     @id @default(cuid())
+  nome      String
+  endereco  String?
+  ativa     Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  pesquisas Pesquisa[]
+}
+
+enum StatusPesquisa {
+  PENDENTE // link gerado, cliente ainda não respondeu
+  RESPONDIDA
+}
+
+// Um convite/registro de pesquisa de satisfação.
+// É criado por um usuário do painel (obra + responsável) e depois
+// preenchido pelo cliente através do link único (token).
+model Pesquisa {
+  id                     String         @id @default(cuid())
+  token                  String         @unique @default(cuid())
+  status                 StatusPesquisa @default(PENDENTE)
+
+  obraId                 String
+  obra                   Obra           @relation(fields: [obraId], references: [id])
+
+  // Id da etapa/tipo de pesquisa (ver TIPOS_PESQUISA em lib/perguntas.ts).
+  // Fica como texto simples (não é uma tabela separada) para ser fácil
+  // editar as etapas sem precisar de migration no banco.
+  tipoPesquisa           String         @default("pos-venda")
+
+  responsavelAtendimento String
+  clienteNome            String?
+  clienteContato         String?
+
+  // Id do cliente/lead no CV CRM, quando encontrado na busca automática.
+  // Usado depois para registrar a resposta da pesquisa como atendimento no CV.
+  clienteCvId            String?
+  leadCvId               String?
+  enviadoCvEm            DateTime?
+
+  criadoPorId            String?
+  criadoPor              Usuario?       @relation(fields: [criadoPorId], references: [id])
+
+  // Notas de 1 a 5 para cada critério (chave = id do critério em lib/perguntas.ts)
+  respostas              Json?
+  // Motivo escrito pelo cliente quando dá uma nota baixa (chave = id do critério)
+  justificativas         Json?
+  notaGeral              Int?           // 0-10, calculado a partir das respostas
+  comentario             String?
+
+  dataAtendimento        DateTime       @default(now())
+  respondidaEm           DateTime?
+  createdAt              DateTime       @default(now())
+}
