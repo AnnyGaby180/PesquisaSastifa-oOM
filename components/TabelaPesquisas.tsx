@@ -21,7 +21,8 @@ type Pesquisa = {
   comentario: string | null;
 };
 
-export default function TabelaPesquisas({ pesquisas }: { pesquisas: Pesquisa[] }) {
+export default function TabelaPesquisas({ pesquisas: pesquisasIniciais }: { pesquisas: Pesquisa[] }) {
+  const [pesquisas, setPesquisas] = useState(pesquisasIniciais);
   const [copiadoToken, setCopiadoToken] = useState<string | null>(null);
   const [filtroObra, setFiltroObra] = useState("");
   const [filtroResponsavel, setFiltroResponsavel] = useState("");
@@ -29,6 +30,8 @@ export default function TabelaPesquisas({ pesquisas }: { pesquisas: Pesquisa[] }
   const [filtroStatus, setFiltroStatus] = useState("");
   const [filtroCriador, setFiltroCriador] = useState("");
   const [expandido, setExpandido] = useState<string | null>(null);
+  const [excluindoToken, setExcluindoToken] = useState<string | null>(null);
+  const [erroExclusao, setErroExclusao] = useState("");
 
   const obrasUnicas = useMemo(
     () => Array.from(new Set(pesquisas.map((p) => p.obra.nome))).sort(),
@@ -55,6 +58,28 @@ export default function TabelaPesquisas({ pesquisas }: { pesquisas: Pesquisa[] }
     if (filtroCriador && p.criadoPorNome !== filtroCriador) return false;
     return true;
   });
+
+  async function excluirPesquisa(p: Pesquisa) {
+    const confirmado = window.confirm(
+      `Excluir a pesquisa de ${p.clienteNome || "cliente sem nome"} (${p.obra.nome})? Essa ação não pode ser desfeita.`
+    );
+    if (!confirmado) return;
+
+    setErroExclusao("");
+    setExcluindoToken(p.token);
+
+    const res = await fetch(`/api/pesquisas/${p.token}`, { method: "DELETE" });
+
+    setExcluindoToken(null);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setErroExclusao(data.erro || "Não foi possível excluir a pesquisa.");
+      return;
+    }
+
+    setPesquisas((atual) => atual.filter((item) => item.token !== p.token));
+  }
 
   function copiarLink(token: string) {
     const url = `${window.location.origin}/pesquisa/${token}`;
@@ -158,6 +183,10 @@ export default function TabelaPesquisas({ pesquisas }: { pesquisas: Pesquisa[] }
         )}
       </div>
 
+      {erroExclusao && (
+        <p className="mb-3 text-sm font-medium text-[color:var(--erro)]">{erroExclusao}</p>
+      )}
+
       {pesquisasFiltradas.length === 0 ? (
         <p className="text-sm text-[color:var(--concreto)]">
           Nenhuma pesquisa encontrada com esses filtros.
@@ -176,6 +205,7 @@ export default function TabelaPesquisas({ pesquisas }: { pesquisas: Pesquisa[] }
                 <th className="py-2 pr-3">Status</th>
                 <th className="py-2 pr-3">Nota</th>
                 <th className="py-2 pr-3">Link</th>
+                <th className="py-2 pr-3"></th>
                 <th className="py-2 pr-3"></th>
               </tr>
             </thead>
@@ -255,10 +285,19 @@ export default function TabelaPesquisas({ pesquisas }: { pesquisas: Pesquisa[] }
                           </button>
                         )}
                       </td>
+                      <td className="py-2 pr-3">
+                        <button
+                          onClick={() => excluirPesquisa(p)}
+                          disabled={excluindoToken === p.token}
+                          className="text-xs font-medium text-[color:var(--erro)] hover:underline disabled:opacity-60"
+                        >
+                          {excluindoToken === p.token ? "Excluindo..." : "Excluir"}
+                        </button>
+                      </td>
                     </tr>
                     {expandido === p.id && p.status === "RESPONDIDA" && (
                       <tr className="border-b border-[color:var(--concreto-claro)]/50 bg-[color:var(--papel)]">
-                        <td colSpan={10} className="px-3 py-4">
+                        <td colSpan={11} className="px-3 py-4">
                           <div className="space-y-3">
                             {tipo?.criterios.map((c) => (
                               <div key={c.id}>
