@@ -61,12 +61,6 @@ export default async function PainelAdmin() {
           >
             Usuários
           </Link>
-          <Link
-            href="/admin/diagnostico-cv"
-            className="text-sm font-medium text-[color:var(--concreto)] hover:text-[color:var(--blueprint)]"
-          >
-            Diagnóstico CV
-          </Link>
           <BotaoSair />
         </div>
       </header>
