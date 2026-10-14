@@ -39,6 +39,7 @@ export default async function PainelAdmin() {
     tipoPesquisa: p.tipoPesquisa,
     clienteNome: p.clienteNome,
     clienteContato: p.clienteContato,
+    unidade: p.unidade,
     responsavelAtendimento: p.responsavelAtendimento,
     criadoPorNome: p.criadoPor?.nome || null,
     notaGeral: p.notaGeral,
