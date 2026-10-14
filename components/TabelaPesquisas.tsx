@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { getTipoPesquisa } from "@/lib/perguntas";
-import { linkWhatsapp } from "@/lib/whatsapp";
+import { linkWhatsapp, mensagemConvitePesquisa } from "@/lib/whatsapp";
 
 type Pesquisa = {
   id: string;
@@ -12,6 +12,7 @@ type Pesquisa = {
   tipoPesquisa: string;
   clienteNome: string | null;
   clienteContato: string | null;
+  unidade: string | null;
   responsavelAtendimento: string;
   criadoPorNome: string | null;
   notaGeral: number | null;
@@ -199,6 +200,7 @@ export default function TabelaPesquisas({ pesquisas: pesquisasIniciais }: { pesq
                 <th className="py-2 pr-3">Obra</th>
                 <th className="py-2 pr-3">Etapa</th>
                 <th className="py-2 pr-3">Cliente</th>
+                <th className="py-2 pr-3">Unidade</th>
                 <th className="py-2 pr-3">Responsável</th>
                 <th className="py-2 pr-3">Gerado por</th>
                 <th className="py-2 pr-3">Data</th>
@@ -221,6 +223,7 @@ export default function TabelaPesquisas({ pesquisas: pesquisasIniciais }: { pesq
                       <td className="py-2 pr-3 font-medium text-[color:var(--blueprint)]">{p.obra.nome}</td>
                       <td className="py-2 pr-3">{tipo?.nome || p.tipoPesquisa}</td>
                       <td className="py-2 pr-3">{p.clienteNome || "—"}</td>
+                      <td className="py-2 pr-3">{p.unidade || "—"}</td>
                       <td className="py-2 pr-3">{p.responsavelAtendimento}</td>
                       <td className="py-2 pr-3">{p.criadoPorNome || "—"}</td>
                       <td className="py-2 pr-3">
@@ -259,9 +262,12 @@ export default function TabelaPesquisas({ pesquisas: pesquisasIniciais }: { pesq
                               <a
                                 href={linkWhatsapp(
                                   p.clienteContato,
-                                  `Olá${p.clienteNome ? `, ${p.clienteNome.split(" ")[0]}` : ""}! Poderia avaliar sua experiência (${
-                                    tipo?.nome || ""
-                                  })? É rapidinho: ${window.location.origin}/pesquisa/${p.token}`
+                                  mensagemConvitePesquisa({
+                                    clienteNome: p.clienteNome,
+                                    etapaId: p.tipoPesquisa,
+                                    etapaNome: tipo?.nome || "",
+                                    link: `${window.location.origin}/pesquisa/${p.token}`,
+                                  })
                                 )}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -297,7 +303,7 @@ export default function TabelaPesquisas({ pesquisas: pesquisasIniciais }: { pesq
                     </tr>
                     {expandido === p.id && p.status === "RESPONDIDA" && (
                       <tr className="border-b border-[color:var(--concreto-claro)]/50 bg-[color:var(--papel)]">
-                        <td colSpan={11} className="px-3 py-4">
+                        <td colSpan={12} className="px-3 py-4">
                           <div className="space-y-3">
                             {tipo?.criterios.map((c) => (
                               <div key={c.id}>

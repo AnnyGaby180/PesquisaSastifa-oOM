@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TIPOS_PESQUISA } from "@/lib/perguntas";
-import { linkWhatsapp } from "@/lib/whatsapp";
+import { linkWhatsapp, mensagemConvitePesquisa } from "@/lib/whatsapp";
 
 type Obra = { id: string; nome: string };
 
@@ -43,6 +43,7 @@ export default function FormularioNovaPesquisa() {
   const [tipoPesquisa, setTipoPesquisa] = useState(TIPOS_PESQUISA[0].id);
   const [responsavel, setResponsavel] = useState("");
   const [clienteNome, setClienteNome] = useState("");
+  const [unidade, setUnidade] = useState("");
   const [clienteContato, setClienteContato] = useState("");
   const [clienteDocumento, setClienteDocumento] = useState("");
   const [clienteEmailBusca, setClienteEmailBusca] = useState("");
@@ -137,6 +138,7 @@ export default function FormularioNovaPesquisa() {
         responsavelAtendimento: responsavel,
         clienteNome,
         clienteContato,
+        unidade,
         idclienteCv,
       }),
     });
@@ -160,7 +162,12 @@ export default function FormularioNovaPesquisa() {
 
   const nomeEtapa = TIPOS_PESQUISA.find((t) => t.id === tipoPesquisa)?.nome || "";
   const mensagemWhatsapp = linkGerado
-    ? `Olá${clienteNome ? `, ${clienteNome.split(" ")[0]}` : ""}! Poderia avaliar sua experiência (${nomeEtapa})? É rapidinho: ${linkGerado}`
+    ? mensagemConvitePesquisa({
+        clienteNome,
+        etapaId: tipoPesquisa,
+        etapaNome: nomeEtapa,
+        link: linkGerado,
+      })
     : "";
 
   return (
@@ -213,6 +220,7 @@ export default function FormularioNovaPesquisa() {
                   setLinkGerado(null);
                   setResponsavel("");
                   setClienteNome("");
+                  setUnidade("");
                   setClienteContato("");
                   setClienteDocumento("");
                   setClienteEmailBusca("");
@@ -357,6 +365,18 @@ export default function FormularioNovaPesquisa() {
                   onChange={(e) => setClienteNome(e.target.value)}
                   className="w-full rounded-md border border-[color:var(--concreto-claro)] px-3 py-2 outline-none focus:border-[color:var(--linha)]"
                   placeholder="Se já souber, preencha; senão o cliente informa"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[color:var(--concreto)]">
+                  Unidade do cliente (opcional)
+                </label>
+                <input
+                  value={unidade}
+                  onChange={(e) => setUnidade(e.target.value)}
+                  className="w-full rounded-md border border-[color:var(--concreto-claro)] px-3 py-2 outline-none focus:border-[color:var(--linha)]"
+                  placeholder="Ex.: Apto 1203 - Torre A, Lote 15 Quadra B"
                 />
               </div>
 
