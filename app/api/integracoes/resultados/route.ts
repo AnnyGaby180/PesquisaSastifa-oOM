@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
       obra: p.obra.nome,
       etapa: tipo?.nome || p.tipoPesquisa,
       cliente: p.clienteNome,
+      unidade: p.unidade,
       responsavelAtendimento: p.responsavelAtendimento,
       geradoPor: p.criadoPor?.nome ?? null,
       notaGeral: p.notaGeral,
