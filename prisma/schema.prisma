@@ -54,6 +54,10 @@ model Pesquisa {
   clienteNome            String?
   clienteContato         String?
 
+  // Unidade do cliente (ex.: "Apto 1203 - Torre A"). Opcional; pesquisas
+  // antigas ficam sem unidade.
+  unidade                String?
+
   // Id do cliente/lead no CV CRM, quando encontrado na busca automática.
   // Usado depois para registrar a resposta da pesquisa como atendimento no CV.
   clienteCvId            String?
