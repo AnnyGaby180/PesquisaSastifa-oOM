@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     responsavelAtendimento,
     clienteNome,
     clienteContato,
+    unidade,
     idclienteCv,
   } = await req.json();
 
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
       responsavelAtendimento: responsavelAtendimento.trim(),
       clienteNome: clienteNome?.trim() || null,
       clienteContato: clienteContato?.trim() || null,
+      unidade: typeof unidade === "string" ? unidade.trim() || null : null,
       clienteCvId: idclienteCv ? String(idclienteCv) : null,
       criadoPorId: usuarioId,
     },
