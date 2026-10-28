@@ -15,6 +15,9 @@ model Usuario {
   email     String     @unique
   senhaHash String
   ativo     Boolean    @default(true)
+  // Proteção contra tentativas de senha em sequência (ver app/api/login)
+  falhasLogin  Int       @default(0)
+  bloqueadoAte DateTime?
   createdAt DateTime   @default(now())
   pesquisas Pesquisa[]
 }
