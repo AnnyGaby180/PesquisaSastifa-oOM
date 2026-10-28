@@ -17,6 +17,8 @@ const body = IBM_Plex_Sans({
 export const metadata: Metadata = {
   title: "Pesquisa de Satisfação — O.M. Incorporadora",
   description: "Pesquisa de satisfação dos clientes das obras",
+  // Sistema interno: não deve aparecer em buscas do Google.
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
