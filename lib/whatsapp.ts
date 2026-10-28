@@ -10,18 +10,15 @@ export function linkWhatsapp(telefoneBruto: string, mensagem: string): string {
 // Usado no formulário de nova pesquisa e na tabela do painel.
 export function mensagemConvitePesquisa(opcoes: {
   clienteNome?: string | null;
-  etapaId: string;
-  etapaNome: string;
+  etapaId?: string;
+  etapaNome?: string;
   link: string;
 }): string {
-  const primeiroNome = opcoes.clienteNome?.trim().split(" ")[0];
-  const saudacao = primeiroNome
-    ? `Olá, ${primeiroNome}, tudo bem? Aqui é da O.M. Incorporadora.`
-    : "Olá, tudo bem? Aqui é da O.M. Incorporadora.";
-  const abertura =
-    opcoes.etapaId === "renegociacao"
-      ? "Agradecemos por conversar com a gente sobre a renegociação do seu contrato!"
-      : `Queremos saber como foi a sua experiência na etapa "${opcoes.etapaNome}".`;
+  return `Olá! Tudo bem? 😊
 
-  return `${saudacao}\n\n${abertura} Sua opinião é muito importante para melhorarmos o nosso atendimento.\n\nPode nos ajudar respondendo uma pesquisa rápida, de cerca de 2 minutos? É só acessar o link abaixo:\n\n${opcoes.link}\n\nAgradecemos desde já!`;
+A OM Inc. valoriza muito a sua opinião! Gostaríamos de convidá-lo a participar da nossa pesquisa de satisfação referente ao atendimento que você recebeu. Sua avaliação é muito importante para aprimorarmos continuamente a qualidade dos nossos serviços.
+
+Contamos com você! 💙
+
+🔗 ${opcoes.link}`;
 }
