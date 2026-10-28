@@ -47,21 +47,43 @@ const existente = await prisma.pesquisa.findUnique({ where: { token }, include: 
   if (existente.status === "RESPONDIDA") {
     return NextResponse.json({ erro: "Esta pesquisa já foi respondida." }, { status: 409 });
   }
-  if (!respostas || Object.keys(respostas).length === 0) {
+  // Só aceita notas inteiras de 1 a 5 para os critérios da etapa desta pesquisa
+  // (ignora qualquer outra chave ou valor estranho enviado por fora do site).
+  const criteriosValidos = new Set(
+    (getTipoPesquisa(existente.tipoPesquisa)?.criterios ?? []).map((c) => c.id)
+  );
+  const respostasLimpas: Record<string, number> = {};
+  for (const [id, nota] of Object.entries(respostas ?? {})) {
+    if (criteriosValidos.has(id) && Number.isInteger(nota) && nota >= 1 && nota <= 5) {
+      respostasLimpas[id] = nota;
+    }
+  }
+  if (Object.keys(respostasLimpas).length === 0) {
     return NextResponse.json({ erro: "Responda pelo menos um critério." }, { status: 400 });
   }
 
-const notaGeral = calcularNotaGeral(respostas);
+  const justificativasLimpas: Record<string, string> = {};
+  for (const [id, texto] of Object.entries(justificativas ?? {})) {
+    if (criteriosValidos.has(id) && typeof texto === "string" && texto.trim()) {
+      justificativasLimpas[id] = texto.trim().slice(0, 1000);
+    }
+  }
+  const comentarioLimpo =
+    typeof comentario === "string" ? comentario.trim().slice(0, 2000) : "";
+  const nomeLimpo =
+    typeof clienteNome === "string" ? clienteNome.trim().slice(0, 200) : "";
+
+const notaGeral = calcularNotaGeral(respostasLimpas);
 
 const atualizada = await prisma.pesquisa.update({
   where: { token },
   data: {
     status: "RESPONDIDA",
-    clienteNome: clienteNome?.trim() || existente.clienteNome,
-    respostas,
+    clienteNome: nomeLimpo || existente.clienteNome,
+    respostas: respostasLimpas,
     justificativas:
-      justificativas && Object.keys(justificativas).length > 0 ? justificativas : undefined,
-    comentario: comentario?.trim() || null,
+      Object.keys(justificativasLimpas).length > 0 ? justificativasLimpas : undefined,
+    comentario: comentarioLimpo || null,
     notaGeral,
     respondidaEm: new Date(),
   },
@@ -77,10 +99,10 @@ if (existente.clienteCvId || existente.leadCvId) {
     `Pesquisa de satisfação respondida — etapa "${nomeEtapa}" (obra: ${existente.obra.nome}).`,
     `Responsável pelo atendimento: ${existente.responsavelAtendimento}.`,
     ];
-  if (comentario?.trim()) partesDescricao.push(`Comentário do cliente: ${comentario.trim()}`);
-  if (justificativas && Object.keys(justificativas).length > 0) {
+  if (comentarioLimpo) partesDescricao.push(`Comentário do cliente: ${comentarioLimpo}`);
+  if (Object.keys(justificativasLimpas).length > 0) {
     partesDescricao.push(
-      `Justificativas de notas baixas: ${JSON.stringify(justificativas)}`
+      `Justificativas de notas baixas: ${JSON.stringify(justificativasLimpas)}`
       );
   }
 
