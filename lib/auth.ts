@@ -1,11 +1,23 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
 const COOKIE_NAME = "sessao_usuario";
 
+// Chave usada para assinar o cookie de login. O ideal é definir SESSION_SECRET
+// (um texto longo e aleatório) nas variáveis do Vercel. Se ela não existir,
+// derivamos uma chave secreta a partir da DATABASE_URL — que nunca fica no
+// código — em vez de usar uma chave padrão que qualquer um poderia ver.
 function getSecret() {
-  return process.env.SESSION_SECRET || "troque-esta-chave-de-sessao";
+  const definida = process.env.SESSION_SECRET;
+  if (definida && definida !== "troque-esta-chave-de-sessao") return definida;
+
+  const base = process.env.DATABASE_URL;
+  if (!base) {
+    throw new Error("Defina SESSION_SECRET nas variáveis de ambiente.");
+  }
+  return crypto.createHash("sha256").update(`sessao-usuario:${base}`).digest("hex");
 }
 
 function assinar(valor: string) {
@@ -42,7 +54,16 @@ export async function getUsuarioIdSessao(): Promise<string | null> {
   const cookieStore = await cookies();
   const valor = cookieStore.get(COOKIE_NAME)?.value;
   if (!valor) return null;
-  return valido(valor);
+  const usuarioId = valido(valor);
+  if (!usuarioId) return null;
+
+  // Confere no banco se o usuário ainda existe e está ativo — assim, quem foi
+  // desativado perde o acesso na hora, mesmo com o cookie ainda válido.
+  const usuario = await prisma.usuario.findUnique({
+    where: { id: usuarioId },
+    select: { ativo: true },
+  });
+  return usuario?.ativo ? usuarioId : null;
 }
 
 export async function estaAutenticado(): Promise<boolean> {
@@ -60,6 +81,15 @@ export async function hashSenha(senha: string): Promise<string> {
 
 export async function senhaConfere(senha: string, hash: string): Promise<boolean> {
   return bcrypt.compare(senha, hash);
+}
+
+// Hash de mentira, usado quando o e-mail não existe, para que o tempo de
+// resposta seja parecido e não dê para descobrir quais e-mails são cadastrados.
+const HASH_FALSO = bcrypt.hashSync("senha-que-nao-existe", 10);
+
+export async function senhaConfereOuFalsa(senha: string, hash: string | null): Promise<boolean> {
+  const ok = await bcrypt.compare(senha, hash ?? HASH_FALSO);
+  return hash !== null && ok;
 }
 
 // Autenticação simples por chave de API, usada por integrações externas
