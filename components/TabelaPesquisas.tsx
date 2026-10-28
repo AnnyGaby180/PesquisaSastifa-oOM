@@ -25,6 +25,7 @@ type Pesquisa = {
 export default function TabelaPesquisas({ pesquisas: pesquisasIniciais }: { pesquisas: Pesquisa[] }) {
   const [pesquisas, setPesquisas] = useState(pesquisasIniciais);
   const [copiadoToken, setCopiadoToken] = useState<string | null>(null);
+  const [mensagemCopiadaToken, setMensagemCopiadaToken] = useState<string | null>(null);
   const [filtroObra, setFiltroObra] = useState("");
   const [filtroResponsavel, setFiltroResponsavel] = useState("");
   const [filtroEtapa, setFiltroEtapa] = useState("");
@@ -87,6 +88,18 @@ export default function TabelaPesquisas({ pesquisas: pesquisasIniciais }: { pesq
     navigator.clipboard.writeText(url);
     setCopiadoToken(token);
     setTimeout(() => setCopiadoToken(null), 1800);
+  }
+
+  function copiarMensagem(p: Pesquisa) {
+    const mensagem = mensagemConvitePesquisa({
+      clienteNome: p.clienteNome,
+      etapaId: p.tipoPesquisa,
+      etapaNome: getTipoPesquisa(p.tipoPesquisa)?.nome || "",
+      link: `${window.location.origin}/pesquisa/${p.token}`,
+    });
+    navigator.clipboard.writeText(mensagem);
+    setMensagemCopiadaToken(p.token);
+    setTimeout(() => setMensagemCopiadaToken(null), 1800);
   }
 
   function limparFiltros() {
@@ -257,6 +270,12 @@ export default function TabelaPesquisas({ pesquisas: pesquisasIniciais }: { pesq
                               className="rounded-md border border-[color:var(--linha)] px-2 py-1 text-xs font-medium text-[color:var(--blueprint)] hover:bg-[color:var(--linha)]/10"
                             >
                               {copiadoToken === p.token ? "Copiado!" : "Copiar link"}
+                            </button>
+                            <button
+                              onClick={() => copiarMensagem(p)}
+                              className="rounded-md border border-[color:var(--linha)] px-2 py-1 text-xs font-medium text-[color:var(--blueprint)] hover:bg-[color:var(--linha)]/10"
+                            >
+                              {mensagemCopiadaToken === p.token ? "Copiada!" : "Copiar mensagem"}
                             </button>
                             {p.clienteContato && (
                               <a

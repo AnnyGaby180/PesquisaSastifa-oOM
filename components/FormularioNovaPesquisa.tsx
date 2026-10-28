@@ -56,6 +56,7 @@ export default function FormularioNovaPesquisa() {
   const [criando, setCriando] = useState(false);
   const [linkGerado, setLinkGerado] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
+  const [mensagemCopiada, setMensagemCopiada] = useState(false);
 
   const podeBuscarCv =
     clienteContato.trim() || clienteDocumento.trim() || clienteEmailBusca.trim();
@@ -160,6 +161,13 @@ export default function FormularioNovaPesquisa() {
     setTimeout(() => setCopiado(false), 1800);
   }
 
+  function copiarMensagem() {
+    if (!mensagemWhatsapp) return;
+    navigator.clipboard.writeText(mensagemWhatsapp);
+    setMensagemCopiada(true);
+    setTimeout(() => setMensagemCopiada(false), 1800);
+  }
+
   const nomeEtapa = TIPOS_PESQUISA.find((t) => t.id === tipoPesquisa)?.nome || "";
   const mensagemWhatsapp = linkGerado
     ? mensagemConvitePesquisa({
@@ -215,6 +223,13 @@ export default function FormularioNovaPesquisa() {
                   {copiado ? "Copiado!" : "Copiar"}
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={copiarMensagem}
+                className="w-full rounded-md border border-[color:var(--linha)] py-2 text-sm font-medium text-[color:var(--blueprint)] hover:bg-[color:var(--linha)]/10"
+              >
+                {mensagemCopiada ? "Mensagem copiada!" : "Copiar mensagem pronta (com o link)"}
+              </button>
               <button
                 onClick={() => {
                   setLinkGerado(null);
